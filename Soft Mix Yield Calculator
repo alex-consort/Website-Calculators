@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soft Ice Cream Yield Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .calculator {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .calculator h2 {
+            text-align: center;
+            color: #007bff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #ff4e59;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #cc3e47;
+        }
+        .result {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .result p {
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator">
+    
+    <div class="form-group">
+        <label for="cartonSize">Carton Size (Litres)</label>
+        <input type="number" id="cartonSize" step="0.01" value="12">
+    </div>
+    <div class="form-group">
+        <label for="overrunPercentage">Overrun Percentage</label>
+        <input type="number" id="overrunPercentage" step="1" value="40">
+    </div>
+    <div class="form-group">
+        <label for="servingSize">Serving Size (ml)</label>
+        <input type="number" id="servingSize" step="1" value="150">
+    </div>
+    <div class="form-group">
+        <label for="rsp">Recommended Selling Price (RSP) per Serving (£)</label>
+        <input type="number" id="rsp" step="0.01" value="2.50">
+    </div>
+    <button class="btn" onclick="calculateYield()">Calculate</button>
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+    function calculateYield() {
+        const cartonSize = parseFloat(document.getElementById('cartonSize').value);
+        const overrunPercentage = parseFloat(document.getElementById('overrunPercentage').value);
+        const servingSize = parseFloat(document.getElementById('servingSize').value);
+        const rsp = parseFloat(document.getElementById('rsp').value);
+        
+        const totalVolumeLiters = cartonSize * (1 + overrunPercentage / 100);
+        const totalVolumeMl = totalVolumeLiters * 1000;
+        const servings = totalVolumeMl / servingSize;
+        const totalReturn = servings * rsp;
+
+        document.getElementById('result').innerHTML = `
+            <p>Total Volume: ${totalVolumeLiters.toFixed(2)} Litres</p>
+            <p>Number of Servings: ${servings.toFixed(2)}</p>
+            <p>Total Return: £${totalReturn.toFixed(2)}</p>
+        `;
+    }
+</script>
+
+</body>
+</html>
