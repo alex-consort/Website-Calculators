@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consort POR Calculator</title>
     <style>
-        /* [Your existing styles remain unchanged] */
+        /* Base styles */
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f9fa;
@@ -15,13 +13,62 @@
             padding: 20px;
         }
 
-        .header {
-            background-color: #274358;
-            color: white;
+        .button-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn,
+        .export-btn,
+        .reset-btn,
+        .comparison-btn {
+            padding: 10px 20px;
+            background-color: #FF4E59;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease;
+            flex: 1;
+            max-width: 200px;
             text-align: center;
-            padding: 15px;
-            font-size: 1.5em;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover,
+        .export-btn:hover,
+        .reset-btn:hover,
+        .comparison-btn:hover {
+            background-color: #cc3e47;
+        }
+
+        .export-btn {
+            background-color: #4CAF50;
+        }
+
+        .export-btn:hover {
+            background-color: #45a049;
+        }
+
+        .reset-btn {
+            background-color: #617B8F;
+        }
+
+        .reset-btn:hover {
+            background-color: #4b6173;
+        }
+
+        .comparison-btn {
+            background-color: #FF8C00;
+        }
+
+        .comparison-btn:hover {
+            background-color: #e67e00;
         }
 
         .container {
@@ -46,10 +93,31 @@
             transform: translateY(-5px);
         }
 
-        .card h3 {
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .product-name-input {
+            flex: 1;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 1.1em;
             text-align: center;
             color: #274358;
-            margin-top: 0;
+        }
+
+        .remove-btn {
+            background-color: #FF4E59;
+            color: white;
+            border: none;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
         }
 
         .form-group {
@@ -63,50 +131,39 @@
         }
 
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 8px;
             border-radius: 5px;
             border: 1px solid #ddd;
         }
 
-        .btn {
-            padding: 10px;
-            background-color: #FF4E59;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn:hover {
-            background-color: #cc3e47;
-        }
-
         .clear-btn,
-        .remove-btn {
+        .copy-btn-bottom {
             font-size: 14px;
-            padding: 8px;
+            padding: 10px;
             border-radius: 5px;
             cursor: pointer;
             margin-top: 10px;
-        }
-
-        .clear-btn {
             background-color: #617B8F;
             color: white;
             width: 100%;
+            border: none;
+            transition: background-color 0.3s ease;
         }
 
-        .remove-btn {
-            background-color: #FF4E59;
-            color: white;
-            border: none;
-            position: absolute;
-            top: 10px;
-            right: 10px;
+        .clear-btn:hover,
+        .copy-btn-bottom:hover {
+            background-color: #4b6173;
+        }
+
+        .copy-btn-bottom {
+            background-color: #4CAF50;
+        }
+
+        .copy-btn-bottom:hover {
+            background-color: #45a049;
         }
 
         .toggle-group {
@@ -117,7 +174,7 @@
 
         .toggle-btn {
             width: 45%;
-            padding: 10px;
+            padding: 8px;
             color: #fff;
             border: none;
             border-radius: 5px;
@@ -173,6 +230,7 @@
             box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
             padding: 20px;
             width: 45%;
+            position: relative;
         }
 
         canvas {
@@ -186,16 +244,113 @@
                 width: 100%;
             }
         }
+
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #274358;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position above the icon */
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Style for comparison modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .compare-select {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .compare-table th,
+        .compare-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .export-chart-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px;
+            background-color: #617B8F;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .export-chart-btn:hover {
+            background-color: #4b6173;
+        }
     </style>
 </head>
-
 <body>
 
-    <div class="header">
-        Consort POR Calculator
+    <div class="button-container">
+        <button class="btn" onclick="addProductCard()">Add Product</button>
+        <button class="export-btn" onclick="exportToCSV()">Export Summary to CSV</button>
+        <button class="reset-btn" onclick="resetAll()">Reset All</button>
+        <button class="comparison-btn" onclick="openComparisonModal()">Comparison Mode</button>
     </div>
-
-    <button class="btn add-product-btn" style="margin-top: 20px; display: block; margin-left: auto; margin-right: auto;" onclick="addProductCard()">Add Product</button>
 
     <div class="container" id="productContainer"></div>
 
@@ -205,7 +360,10 @@
                 <th>Product</th>
                 <th>Wholesale (£)</th>
                 <th>RRP (£)</th>
+                <th>Discount (%)</th>
                 <th>Pack Size</th>
+                <th>Total Units</th>
+                <th>Total Revenue (£)</th>
                 <th>Profit per Item (£)</th>
                 <th>Total Profit (£)</th>
                 <th>POR (%)</th>
@@ -215,6 +373,9 @@
         <tfoot>
             <tr>
                 <td colspan="5">Totals:</td>
+                <td id="totalUnits">0</td>
+                <td id="totalRevenue">£0.00</td>
+                <td></td>
                 <td id="totalProfit">£0.00</td>
                 <td id="averagePOR">0.00%</td>
             </tr>
@@ -225,25 +386,64 @@
         <div class="chart-card">
             <h3>Profit by Product</h3>
             <canvas id="profitChart"></canvas>
+            <button class="export-chart-btn" onclick="exportChart('profitChart', 'profit_chart.png')">Export Chart</button>
         </div>
         <div class="chart-card">
             <h3>POR by Product</h3>
             <canvas id="porChart"></canvas>
+            <button class="export-chart-btn" onclick="exportChart('porChart', 'por_chart.png')">Export Chart</button>
         </div>
     </div>
 
+    <!-- Comparison Modal -->
+    <div id="comparisonModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeComparisonModal()">&times;</span>
+            <h2>Comparison Mode</h2>
+            <div class="form-group">
+                <label for="compareProduct1">Select Product 1:</label>
+                <select id="compareProduct1" class="compare-select"></select>
+            </div>
+            <div class="form-group">
+                <label for="compareProduct2">Select Product 2:</label>
+                <select id="compareProduct2" class="compare-select"></select>
+            </div>
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>Product 1</th>
+                        <th>Product 2</th>
+                    </tr>
+                </thead>
+                <tbody id="comparisonBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Include Chart.js and plugin for data labels -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+    <!-- Include html2canvas for exporting charts -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
     <script>
+        // Register the DataLabels plugin
+        Chart.register(ChartDataLabels);
+
         let uniqueIdCounter = 0; // Unique ID for each product card
         let productData = []; // Array to store product data
+        let productNamesList = []; // For autocomplete
 
-        function addProductCard() {
+        function addProductCard(data = null) {
             const productId = uniqueIdCounter++;
             const product = {
                 id: productId,
-                name: '', // Will set later
-                profit: 0,
-                por: 0
+                name: data ? data.name : '', // Will set later
+                profit: data ? data.profit : 0,
+                por: data ? data.por : 0,
+                revenue: data ? data.revenue : 0
             };
             productData.push(product);
 
@@ -251,22 +451,51 @@
             card.className = 'card';
             card.id = `productCard${productId}`;
             card.innerHTML = `
-                <h3 id="productTitle${productId}">Product </h3>
-                <button class="remove-btn" onclick="removeProductCard(${productId})">X</button>
-                <div class="form-group">
-                    <label for="wholesale${productId}">Wholesale Price (£)</label>
-                    <input type="number" id="wholesale${productId}" step="0.01" value="" oninput="calculatePOR(${productId})">
+                <div class="card-header">
+                    <input list="productNames" type="text" id="productName${productId}" class="product-name-input" placeholder="Product ${productData.length}" oninput="updateProductName(${productId})">
+                    <datalist id="productNames">
+                        ${productNamesList.map(name => `<option value="${name}">`).join('')}
+                    </datalist>
+                    <button class="remove-btn" onclick="removeProductCard(${productId})">X</button>
                 </div>
                 <div class="form-group">
-                    <label for="rrp${productId}">RRP (£)</label>
-                    <input type="number" id="rrp${productId}" step="0.01" value="" oninput="calculatePOR(${productId})">
+                    <label for="wholesale${productId}">Wholesale (£)
+                        <span class="tooltip">ℹ️
+                            <span class="tooltiptext">Enter the total wholesale price for all units in the pack.</span>
+                        </span>
+                    </label>
+                    <input type="number" id="wholesale${productId}" step="0.01" oninput="calculatePOR(${productId})">
                 </div>
                 <div class="form-group">
-                    <label for="pack${productId}">Pack Size</label>
-                    <input type="number" id="pack${productId}" step="1" value="" oninput="calculatePOR(${productId})">
+                    <label for="rrp${productId}">RRP (£)
+                        <span class="tooltip">ℹ️
+                            <span class="tooltiptext">Enter the recommended retail price per unit.</span>
+                        </span>
+                    </label>
+                    <input type="number" id="rrp${productId}" step="0.01" oninput="calculatePOR(${productId})">
                 </div>
                 <div class="form-group">
-                    <label>VAT Rate:</label>
+                    <label for="discount${productId}">Discount (%)
+                        <span class="tooltip">ℹ️
+                            <span class="tooltiptext">Enter the discount percentage on the RRP.</span>
+                        </span>
+                    </label>
+                    <input type="number" id="discount${productId}" step="0.01" value="0" oninput="calculatePOR(${productId})">
+                </div>
+                <div class="form-group">
+                    <label for="pack${productId}">Pack Size
+                        <span class="tooltip">ℹ️
+                            <span class="tooltiptext">Enter the number of units in the pack.</span>
+                        </span>
+                    </label>
+                    <input type="number" id="pack${productId}" step="1" oninput="calculatePOR(${productId})">
+                </div>
+                <div class="form-group">
+                    <label>VAT Rate:
+                        <span class="tooltip">ℹ️
+                            <span class="tooltiptext">Select the VAT rate applicable to the product.</span>
+                        </span>
+                    </label>
                     <div class="toggle-group">
                         <button id="vatRate20${productId}" class="toggle-btn toggle-yes" onclick="toggleVAT(${productId}, '20')">20%</button>
                         <button id="vatRate0${productId}" class="toggle-btn toggle-no" onclick="toggleVAT(${productId}, '0')">0%</button>
@@ -274,18 +503,63 @@
                     <input type="hidden" id="vat${productId}" value="20">
                 </div>
                 <div class="form-group">
-                    <label>Free Stock:</label>
+                    <label>Free Stock:
+                        <span class="tooltip">ℹ️
+                            <span class="tooltiptext">Indicate if the stock is provided for free.</span>
+                        </span>
+                    </label>
                     <div class="toggle-group">
                         <button id="freeStockYes${productId}" class="toggle-btn toggle-no" onclick="toggleFreeStock(${productId}, 'Yes')">Yes</button>
                         <button id="freeStockNo${productId}" class="toggle-btn toggle-yes" onclick="toggleFreeStock(${productId}, 'No')">No</button>
                     </div>
                     <input type="hidden" id="freeStock${productId}" value="No">
                 </div>
+                <div class="form-group">
+                    <label for="notes${productId}">Notes:
+                        <span class="tooltip">ℹ️
+                            <span class="tooltiptext">Add any notes or comments about the product.</span>
+                        </span>
+                    </label>
+                    <textarea id="notes${productId}" rows="3"></textarea>
+                </div>
                 <button class="clear-btn" onclick="clearProductCard(${productId})">Clear</button>
+                <button class="copy-btn-bottom" onclick="copyProductCard(${productId})">Copy</button>
                 <div class="summary" id="summary${productId}"></div>
             `;
             document.getElementById('productContainer').appendChild(card);
-            updateProductTitles();
+
+            // If data is provided (for loading from localStorage), set the input values
+            if (data) {
+                document.getElementById(`productName${productId}`).value = data.name;
+                document.getElementById(`wholesale${productId}`).value = data.wholesale;
+                document.getElementById(`rrp${productId}`).value = data.rrp;
+                document.getElementById(`discount${productId}`).value = data.discount;
+                document.getElementById(`pack${productId}`).value = data.packSize;
+                document.getElementById(`vat${productId}`).value = data.vat;
+                document.getElementById(`freeStock${productId}`).value = data.isFreeStock ? 'Yes' : 'No';
+                document.getElementById(`notes${productId}`).value = data.notes || '';
+                // Update toggle buttons
+                toggleVAT(productId, data.vat);
+                toggleFreeStock(productId, data.isFreeStock ? 'Yes' : 'No');
+                calculatePOR(productId);
+            }
+        }
+
+        function updateProductName(productId) {
+            const nameInput = document.getElementById(`productName${productId}`);
+            const product = productData.find(p => p.id === productId);
+            product.name = nameInput.value || `Product ${productData.indexOf(product) + 1}`;
+            updateSummaryTableName(productId, product.name);
+            updateCharts();
+            saveProductNames();
+            saveData();
+        }
+
+        function saveProductNames() {
+            productNamesList = [...new Set(productData.map(p => p.name).filter(name => name))];
+            // Update datalist options
+            const datalist = document.getElementById('productNames');
+            datalist.innerHTML = productNamesList.map(name => `<option value="${name}">`).join('');
         }
 
         function removeProductCard(productId) {
@@ -296,25 +570,27 @@
             }
             // Remove product from productData
             productData = productData.filter(product => product.id !== productId);
-            updateProductTitles();
             calculateTotalPOR();
             updateCharts();
+            saveProductNames();
+            saveData();
         }
 
-        function updateProductTitles() {
-            productData.forEach((product, index) => {
-                product.name = `Product ${index + 1}`;
-                const productId = product.id;
-                const titleElement = document.getElementById(`productTitle${productId}`);
-                if (titleElement) {
-                    titleElement.innerText = product.name;
-                }
-                // Update the row in the summary table if exists
-                const row = document.getElementById(`row${productId}`);
-                if (row) {
-                    row.cells[0].innerText = product.name;
-                }
-            });
+        function copyProductCard(productId) {
+            const originalProduct = productData.find(p => p.id === productId);
+            if (originalProduct) {
+                const data = {
+                    name: originalProduct.name + ' Copy',
+                    wholesale: document.getElementById(`wholesale${productId}`).value,
+                    rrp: document.getElementById(`rrp${productId}`).value,
+                    discount: document.getElementById(`discount${productId}`).value,
+                    packSize: document.getElementById(`pack${productId}`).value,
+                    vat: document.getElementById(`vat${productId}`).value,
+                    isFreeStock: document.getElementById(`freeStock${productId}`).value === 'Yes',
+                    notes: document.getElementById(`notes${productId}`).value
+                };
+                addProductCard(data);
+            }
         }
 
         function toggleVAT(productId, rate) {
@@ -325,35 +601,32 @@
             document.getElementById(`vatRate0${productId}`).classList.toggle('toggle-yes', rate === '0');
             document.getElementById(`vatRate0${productId}`).classList.toggle('toggle-no', rate !== '0');
             calculatePOR(productId);
+            saveData();
         }
 
         function toggleFreeStock(productId, choice) {
             document.getElementById(`freeStock${productId}`).value = choice;
             document.getElementById(`freeStockYes${productId}`).classList.toggle('toggle-yes', choice === 'Yes');
             document.getElementById(`freeStockYes${productId}`).classList.toggle('toggle-no', choice !== 'Yes');
-            document.getElementById(`freeStockNo${productId}`).classList.toggle('toggle-no', choice === 'Yes');
-            document.getElementById(`freeStockNo${productId}`).classList.toggle('toggle-yes', choice !== 'Yes');
+            document.getElementById(`freeStockNo${productId}`).classList.toggle('toggle-yes', choice === 'No');
+            document.getElementById(`freeStockNo${productId}`).classList.toggle('toggle-no', choice !== 'No');
             calculatePOR(productId);
+            saveData();
         }
 
         function clearProductCard(productId) {
             document.getElementById(`wholesale${productId}`).value = '';
             document.getElementById(`rrp${productId}`).value = '';
+            document.getElementById(`discount${productId}`).value = '0';
             document.getElementById(`pack${productId}`).value = '';
+            document.getElementById(`productName${productId}`).value = '';
+            document.getElementById(`notes${productId}`).value = '';
 
             // Reset VAT to '20%'
-            document.getElementById(`vat${productId}`).value = '20';
-            document.getElementById(`vatRate20${productId}`).classList.add('toggle-yes');
-            document.getElementById(`vatRate20${productId}`).classList.remove('toggle-no');
-            document.getElementById(`vatRate0${productId}`).classList.add('toggle-no');
-            document.getElementById(`vatRate0${productId}`).classList.remove('toggle-yes');
+            toggleVAT(productId, '20');
 
             // Reset Free Stock to 'No'
-            document.getElementById(`freeStock${productId}`).value = 'No';
-            document.getElementById(`freeStockYes${productId}`).classList.remove('toggle-yes');
-            document.getElementById(`freeStockYes${productId}`).classList.add('toggle-no');
-            document.getElementById(`freeStockNo${productId}`).classList.remove('toggle-no');
-            document.getElementById(`freeStockNo${productId}`).classList.add('toggle-yes');
+            toggleFreeStock(productId, 'No');
 
             document.getElementById(`summary${productId}`).innerHTML = '';
 
@@ -362,6 +635,8 @@
             if (product) {
                 product.profit = 0;
                 product.por = 0;
+                product.revenue = 0;
+                product.name = '';
             }
 
             // Remove summary table row
@@ -372,85 +647,127 @@
 
             calculateTotalPOR();
             updateCharts();
+            saveProductNames();
+            saveData();
         }
 
         function calculatePOR(productId) {
-            const wholesale = parseFloat(document.getElementById(`wholesale${productId}`).value) || 0;
-            const rrp = parseFloat(document.getElementById(`rrp${productId}`).value) || 0;
-            const packSize = parseFloat(document.getElementById(`pack${productId}`).value) || 0;
-            const vat = parseFloat(document.getElementById(`vat${productId}`).value) || 0;
+            const wholesaleInput = document.getElementById(`wholesale${productId}`);
+            const rrpInput = document.getElementById(`rrp${productId}`);
+            const discountInput = document.getElementById(`discount${productId}`);
+            const packSizeInput = document.getElementById(`pack${productId}`);
+            const vatRate = parseFloat(document.getElementById(`vat${productId}`).value);
+
+            const wholesale = parseFloat(wholesaleInput.value);
+            const rrp = parseFloat(rrpInput.value);
+            const discount = parseFloat(discountInput.value) || 0;
+            const packSize = parseInt(packSizeInput.value);
             const isFreeStock = document.getElementById(`freeStock${productId}`).value === 'Yes';
 
             const product = productData.find(p => p.id === productId);
 
-            if (wholesale > 0 && rrp > 0 && packSize > 0) {
-                const unitCost = wholesale / packSize;
-                const unitCostWithVAT = unitCost * (1 + vat / 100);
-                const profitPerItem = isFreeStock ? rrp : rrp - unitCostWithVAT;
-                const totalProfit = profitPerItem * packSize;
-                const por = isFreeStock ? 100 : (profitPerItem / rrp) * 100;
-
-                document.getElementById(`summary${productId}`).innerHTML = `
-                    <p>Profit per Item: £${profitPerItem.toFixed(2)}</p>
-                    <p>Total Profit: £${totalProfit.toFixed(2)}</p>
-                    <p>POR: ${por.toFixed(2)}%</p>
-                `;
-
-                product.profit = totalProfit;
-                product.por = por;
-
-                updateSummaryTable(productId, product.name, wholesale, rrp, packSize, profitPerItem, totalProfit, por);
-            } else {
-                document.getElementById(`summary${productId}`).innerHTML = '<p>Please enter valid values</p>';
+            // Input validation
+            if (
+                isNaN(wholesale) || wholesale <= 0 ||
+                isNaN(rrp) || rrp <= 0 ||
+                isNaN(packSize) || packSize <= 0 ||
+                discount < 0 || discount >= 100
+            ) {
+                document.getElementById(`summary${productId}`).innerHTML = '<p>Please enter valid positive numbers. Discount should be between 0 and 100.</p>';
                 product.profit = 0;
                 product.por = 0;
+                product.revenue = 0;
                 const row = document.getElementById(`row${productId}`);
                 if (row) {
                     row.remove();
                 }
+                calculateTotalPOR();
+                updateCharts();
+                saveData();
+                return;
             }
+
+            const discountedRRP = rrp * (1 - discount / 100);
+            const unitCost = wholesale / packSize;
+            const unitCostWithVAT = unitCost * (1 + vatRate / 100);
+            const profitPerItem = isFreeStock ? discountedRRP : discountedRRP - unitCostWithVAT;
+            const totalProfit = profitPerItem * packSize;
+            const por = isFreeStock ? 100 : (profitPerItem / discountedRRP) * 100;
+            const totalRevenue = discountedRRP * packSize;
+
+            document.getElementById(`summary${productId}`).innerHTML = `
+                <p>Unit Cost with VAT: £${unitCostWithVAT.toFixed(2)}</p>
+                <p>Profit per Item: £${profitPerItem.toFixed(2)}</p>
+                <p>Total Profit: £${totalProfit.toFixed(2)}</p>
+                <p>POR: ${por.toFixed(2)}%</p>
+            `;
+
+            product.profit = totalProfit;
+            product.por = por;
+            product.revenue = totalRevenue;
+            product.packSize = packSize;
+
+            updateSummaryTable(productId, product.name || `Product ${productData.indexOf(product) + 1}`, wholesale, rrp, discount, packSize, totalRevenue, profitPerItem, totalProfit, por);
 
             calculateTotalPOR();
             updateCharts();
+            saveData();
         }
 
-        function updateSummaryTable(productId, productName, wholesale, rrp, packSize, profitPerItem, totalProfit, por) {
+        function updateSummaryTable(productId, productName, wholesale, rrp, discount, packSize, totalRevenue, profitPerItem, totalProfit, por) {
             let row = document.getElementById(`row${productId}`);
             if (!row) {
                 row = document.createElement('tr');
                 row.id = `row${productId}`;
                 document.getElementById('summaryBody').appendChild(row);
             }
+
             row.innerHTML = `
                 <td>${productName}</td>
                 <td>£${wholesale.toFixed(2)}</td>
                 <td>£${rrp.toFixed(2)}</td>
+                <td>${discount.toFixed(2)}%</td>
                 <td>${packSize}</td>
+                <td>${packSize}</td>
+                <td>£${totalRevenue.toFixed(2)}</td>
                 <td>£${profitPerItem.toFixed(2)}</td>
                 <td>£${totalProfit.toFixed(2)}</td>
                 <td>${por.toFixed(2)}%</td>
             `;
         }
 
+        function updateSummaryTableName(productId, productName) {
+            const row = document.getElementById(`row${productId}`);
+            if (row) {
+                row.cells[0].innerText = productName;
+            }
+        }
+
         function calculateTotalPOR() {
             let totalProfit = 0;
             let totalCost = 0;
+            let totalRevenue = 0;
+            let totalUnits = 0;
 
             productData.forEach(product => {
                 const productId = product.id;
                 const wholesale = parseFloat(document.getElementById(`wholesale${productId}`).value) || 0;
                 const rrp = parseFloat(document.getElementById(`rrp${productId}`).value) || 0;
+                const discount = parseFloat(document.getElementById(`discount${productId}`).value) || 0;
                 const packSize = parseFloat(document.getElementById(`pack${productId}`).value) || 0;
-                const vat = parseFloat(document.getElementById(`vat${productId}`).value) || 0;
+                const vatRate = parseFloat(document.getElementById(`vat${productId}`).value) || 0;
                 const isFreeStock = document.getElementById(`freeStock${productId}`).value === 'Yes';
 
-                if (wholesale && rrp && packSize) {
+                if (wholesale && rrp && packSize && discount >= 0 && discount < 100) {
+                    const discountedRRP = rrp * (1 - discount / 100);
                     const unitCost = wholesale / packSize;
-                    const unitCostWithVAT = unitCost * (1 + vat / 100);
+                    const unitCostWithVAT = unitCost * (1 + vatRate / 100);
                     if (!isFreeStock) {
                         totalCost += unitCostWithVAT * packSize;
                     }
-                    totalProfit += isFreeStock ? rrp * packSize : (rrp - unitCostWithVAT) * packSize;
+                    totalProfit += isFreeStock ? discountedRRP * packSize : (discountedRRP - unitCostWithVAT) * packSize;
+                    totalRevenue += discountedRRP * packSize;
+                    totalUnits += packSize;
                 }
             });
 
@@ -463,8 +780,10 @@
                 totalPor = 0;
             }
 
+            document.getElementById('totalUnits').textContent = totalUnits;
             document.getElementById('totalProfit').textContent = `£${totalProfit.toFixed(2)}`;
             document.getElementById('averagePOR').textContent = `${totalPor.toFixed(2)}%`;
+            document.getElementById('totalRevenue').textContent = `£${totalRevenue.toFixed(2)}`;
         }
 
         // Initialize chart variables
@@ -486,7 +805,7 @@
                 return;
             }
 
-            const labels = filteredData.map(product => product.name);
+            const labels = filteredData.map(product => product.name || `Product ${productData.indexOf(product) + 1}`);
             const profits = filteredData.map(product => product.profit);
             const pors = filteredData.map(product => product.por);
 
@@ -510,7 +829,15 @@
                         responsive: true,
                         scales: { y: { beginAtZero: true } },
                         plugins: {
-                            legend: { display: false }
+                            legend: { display: false },
+                            datalabels: {
+                                color: '#000',
+                                anchor: 'end',
+                                align: 'top',
+                                formatter: function(value) {
+                                    return '£' + value.toFixed(2);
+                                }
+                            }
                         }
                     }
                 });
@@ -534,19 +861,226 @@
                     },
                     options: {
                         responsive: true,
-                        scales: { y: { beginAtZero: true } },
+                        scales: { y: { beginAtZero: true, max: 100 } },
                         plugins: {
-                            legend: { display: false }
+                            legend: { display: false },
+                            datalabels: {
+                                color: '#000',
+                                anchor: 'end',
+                                align: 'top',
+                                formatter: function(value) {
+                                    return value.toFixed(2) + '%';
+                                }
+                            }
                         }
                     }
                 });
             }
         }
 
-        // Initialize with 3 product cards
-        for (let i = 0; i < 3; i++) addProductCard();
+        function exportToCSV() {
+            let csvContent = "\uFEFF"; // Add BOM to fix encoding issues
+            csvContent += "Product,Wholesale (£),RRP (£),Discount (%),Pack Size,Total Revenue (£),Profit per Item (£),Total Profit (£),POR (%)\n";
+
+            productData.forEach(product => {
+                const productId = product.id;
+                const name = product.name || `Product ${productData.indexOf(product) + 1}`;
+                const wholesale = parseFloat(document.getElementById(`wholesale${productId}`).value) || 0;
+                const rrp = parseFloat(document.getElementById(`rrp${productId}`).value) || 0;
+                const discount = parseFloat(document.getElementById(`discount${productId}`).value) || 0;
+                const packSize = parseFloat(document.getElementById(`pack${productId}`).value) || 0;
+                const totalRevenue = product.revenue;
+                const profitPerItem = product.profit / packSize;
+                const totalProfit = product.profit;
+                const por = product.por;
+
+                if (wholesale && rrp && packSize) {
+                    csvContent += `${name},£${wholesale.toFixed(2)},£${rrp.toFixed(2)},${discount.toFixed(2)}%,${packSize},£${totalRevenue.toFixed(2)},£${profitPerItem.toFixed(2)},£${totalProfit.toFixed(2)},${por.toFixed(2)}%\n`;
+                }
+            });
+
+            // Download CSV with proper encoding
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            if (navigator.msSaveBlob) { // IE 10+
+                navigator.msSaveBlob(blob, "por_summary.csv");
+            } else {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "por_summary.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        function resetAll() {
+            // Clear product data
+            productData = [];
+            uniqueIdCounter = 0;
+            // Remove all product cards
+            document.getElementById('productContainer').innerHTML = '';
+            // Clear summary table
+            document.getElementById('summaryBody').innerHTML = '';
+            // Reset totals
+            document.getElementById('totalUnits').textContent = '0';
+            document.getElementById('totalRevenue').textContent = '£0.00';
+            document.getElementById('totalProfit').textContent = '£0.00';
+            document.getElementById('averagePOR').textContent = '0.00%';
+            // Destroy charts
+            if (profitChart) {
+                profitChart.destroy();
+                profitChart = null;
+            }
+            if (porChart) {
+                porChart.destroy();
+                porChart = null;
+            }
+            // Clear local storage
+            localStorage.removeItem('porCalculatorData');
+            // Reset product names list
+            productNamesList = [];
+        }
+
+        function saveData() {
+            const dataToSave = productData.map(product => {
+                const productId = product.id;
+                return {
+                    id: productId,
+                    name: product.name,
+                    wholesale: document.getElementById(`wholesale${productId}`).value,
+                    rrp: document.getElementById(`rrp${productId}`).value,
+                    discount: document.getElementById(`discount${productId}`).value,
+                    packSize: document.getElementById(`pack${productId}`).value,
+                    vat: document.getElementById(`vat${productId}`).value,
+                    isFreeStock: document.getElementById(`freeStock${productId}`).value === 'Yes',
+                    notes: document.getElementById(`notes${productId}`).value
+                };
+            });
+            localStorage.setItem('porCalculatorData', JSON.stringify(dataToSave));
+        }
+
+        function loadData() {
+            const savedData = localStorage.getItem('porCalculatorData');
+            if (savedData) {
+                const products = JSON.parse(savedData);
+                products.forEach(data => {
+                    addProductCard(data);
+                });
+            } else {
+                // Initialize with 3 product cards
+                for (let i = 0; i < 3; i++) addProductCard();
+            }
+            saveProductNames();
+        }
+
+        function exportChart(chartId, filename) {
+            const chartCanvas = document.getElementById(chartId);
+            html2canvas(chartCanvas.parentNode).then(canvas => {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL();
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+
+        function openComparisonModal() {
+            const modal = document.getElementById('comparisonModal');
+            const select1 = document.getElementById('compareProduct1');
+            const select2 = document.getElementById('compareProduct2');
+
+            // Clear previous options
+            select1.innerHTML = '<option value="">--Select Product--</option>';
+            select2.innerHTML = '<option value="">--Select Product--</option>';
+
+            // Populate options
+            productData.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = product.name || `Product ${productData.indexOf(product) + 1}`;
+                select1.appendChild(option.cloneNode(true));
+                select2.appendChild(option.cloneNode(true));
+            });
+
+            modal.style.display = 'block';
+
+            // Add event listeners
+            select1.onchange = updateComparisonTable;
+            select2.onchange = updateComparisonTable;
+        }
+
+        function closeComparisonModal() {
+            document.getElementById('comparisonModal').style.display = 'none';
+            document.getElementById('comparisonBody').innerHTML = '';
+        }
+
+        function updateComparisonTable() {
+            const select1 = document.getElementById('compareProduct1');
+            const select2 = document.getElementById('compareProduct2');
+            const productId1 = parseInt(select1.value);
+            const productId2 = parseInt(select2.value);
+
+            if (isNaN(productId1) || isNaN(productId2) || productId1 === productId2) {
+                document.getElementById('comparisonBody').innerHTML = '<tr><td colspan="3">Please select two different products.</td></tr>';
+                return;
+            }
+
+            const product1 = productData.find(p => p.id === productId1);
+            const product2 = productData.find(p => p.id === productId2);
+
+            const attributes = ['Wholesale (£)', 'RRP (£)', 'Discount (%)', 'Pack Size', 'Total Units', 'Total Revenue (£)', 'Profit per Item (£)', 'Total Profit (£)', 'POR (%)'];
+
+            const values1 = [
+                `£${parseFloat(document.getElementById(`wholesale${productId1}`).value).toFixed(2)}`,
+                `£${parseFloat(document.getElementById(`rrp${productId1}`).value).toFixed(2)}`,
+                `${parseFloat(document.getElementById(`discount${productId1}`).value).toFixed(2)}%`,
+                document.getElementById(`pack${productId1}`).value,
+                product1.packSize,
+                `£${product1.revenue.toFixed(2)}`,
+                `£${(product1.profit / product1.packSize).toFixed(2)}`,
+                `£${product1.profit.toFixed(2)}`,
+                `${product1.por.toFixed(2)}%`
+            ];
+
+            const values2 = [
+                `£${parseFloat(document.getElementById(`wholesale${productId2}`).value).toFixed(2)}`,
+                `£${parseFloat(document.getElementById(`rrp${productId2}`).value).toFixed(2)}`,
+                `${parseFloat(document.getElementById(`discount${productId2}`).value).toFixed(2)}%`,
+                document.getElementById(`pack${productId2}`).value,
+                product2.packSize,
+                `£${product2.revenue.toFixed(2)}`,
+                `£${(product2.profit / product2.packSize).toFixed(2)}`,
+                `£${product2.profit.toFixed(2)}`,
+                `${product2.por.toFixed(2)}%`
+            ];
+
+            let comparisonHTML = '';
+            for (let i = 0; i < attributes.length; i++) {
+                comparisonHTML += `
+                    <tr>
+                        <td>${attributes[i]}</td>
+                        <td>${values1[i]}</td>
+                        <td>${values2[i]}</td>
+                    </tr>
+                `;
+            }
+
+            document.getElementById('comparisonBody').innerHTML = comparisonHTML;
+        }
+
+        // Close modal when clicking outside content
+        window.onclick = function(event) {
+            const modal = document.getElementById('comparisonModal');
+            if (event.target == modal) {
+                closeComparisonModal();
+            }
+        }
+
+        // Load data on page load
+        window.onload = loadData;
     </script>
 
 </body>
-
 </html>
