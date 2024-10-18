@@ -687,16 +687,18 @@
                 return;
             }
 
-            const discountedRRP = rrp * (1 - discount / 100);
-            const unitCost = wholesale / packSize;
-            const unitCostWithVAT = unitCost * (1 + vatRate / 100);
-            const profitPerItem = isFreeStock ? discountedRRP : discountedRRP - unitCostWithVAT;
+            const discountedRRP = rrp * (1 - discount / 100); // RRP including VAT
+            const sellingPriceExVAT = discountedRRP / (1 + vatRate / 100); // Selling price excluding VAT
+            const unitCost = wholesale / packSize; // Cost price excluding VAT
+
+            const profitPerItem = isFreeStock ? sellingPriceExVAT : sellingPriceExVAT - unitCost;
             const totalProfit = profitPerItem * packSize;
-            const por = isFreeStock ? 100 : (profitPerItem / discountedRRP) * 100;
-            const totalRevenue = discountedRRP * packSize;
+            const por = isFreeStock ? 100 : (profitPerItem / sellingPriceExVAT) * 100;
+            const totalRevenue = discountedRRP * packSize; // Total revenue including VAT
 
             document.getElementById(`summary${productId}`).innerHTML = `
-                <p>Unit Cost with VAT: £${unitCostWithVAT.toFixed(2)}</p>
+                <p>Unit Cost: £${unitCost.toFixed(2)}</p>
+                <p>Selling Price (ex VAT): £${sellingPriceExVAT.toFixed(2)}</p>
                 <p>Profit per Item: £${profitPerItem.toFixed(2)}</p>
                 <p>Total Profit: £${totalProfit.toFixed(2)}</p>
                 <p>POR: ${por.toFixed(2)}%</p>
@@ -706,6 +708,7 @@
             product.por = por;
             product.revenue = totalRevenue;
             product.packSize = packSize;
+            product.sellingPriceExVAT = sellingPriceExVAT * packSize;
 
             updateSummaryTable(productId, product.name || `Product ${productData.indexOf(product) + 1}`, wholesale, rrp, discount, packSize, totalRevenue, profitPerItem, totalProfit, por);
 
@@ -748,34 +751,42 @@
             let totalCost = 0;
             let totalRevenue = 0;
             let totalUnits = 0;
+            let totalSellingPriceExVAT = 0;
 
             productData.forEach(product => {
                 const productId = product.id;
-                const wholesale = parseFloat(document.getElementById(`wholesale${productId}`).value) || 0;
-                const rrp = parseFloat(document.getElementById(`rrp${productId}`).value) || 0;
+                const wholesale = parseFloat(document.getElementById(`wholesale${productId}`).value);
+                const rrp = parseFloat(document.getElementById(`rrp${productId}`).value);
                 const discount = parseFloat(document.getElementById(`discount${productId}`).value) || 0;
-                const packSize = parseFloat(document.getElementById(`pack${productId}`).value) || 0;
-                const vatRate = parseFloat(document.getElementById(`vat${productId}`).value) || 0;
+                const packSize = parseFloat(document.getElementById(`pack${productId}`).value);
+                const vatRate = parseFloat(document.getElementById(`vat${productId}`).value);
                 const isFreeStock = document.getElementById(`freeStock${productId}`).value === 'Yes';
 
-                if (wholesale && rrp && packSize && discount >= 0 && discount < 100) {
+                if (
+                    !isNaN(wholesale) && wholesale > 0 &&
+                    !isNaN(rrp) && rrp > 0 &&
+                    !isNaN(packSize) && packSize > 0 &&
+                    discount >= 0 && discount < 100
+                ) {
                     const discountedRRP = rrp * (1 - discount / 100);
+                    const sellingPriceExVAT = discountedRRP / (1 + vatRate / 100);
                     const unitCost = wholesale / packSize;
-                    const unitCostWithVAT = unitCost * (1 + vatRate / 100);
+
                     if (!isFreeStock) {
-                        totalCost += unitCostWithVAT * packSize;
+                        totalCost += unitCost * packSize;
                     }
-                    totalProfit += isFreeStock ? discountedRRP * packSize : (discountedRRP - unitCostWithVAT) * packSize;
+
+                    const profitPerItem = isFreeStock ? sellingPriceExVAT : sellingPriceExVAT - unitCost;
+                    totalProfit += profitPerItem * packSize;
                     totalRevenue += discountedRRP * packSize;
                     totalUnits += packSize;
+                    totalSellingPriceExVAT += sellingPriceExVAT * packSize;
                 }
             });
 
             let totalPor = 0;
-            if (totalCost > 0) {
-                totalPor = (totalProfit / totalCost) * 100;
-            } else if (totalProfit > 0) {
-                totalPor = 100;
+            if (totalSellingPriceExVAT > 0) {
+                totalPor = (totalProfit / totalSellingPriceExVAT) * 100;
             } else {
                 totalPor = 0;
             }
@@ -785,6 +796,8 @@
             document.getElementById('averagePOR').textContent = `${totalPor.toFixed(2)}%`;
             document.getElementById('totalRevenue').textContent = `£${totalRevenue.toFixed(2)}`;
         }
+
+        // [Rest of your JavaScript code remains unchanged]
 
         // Initialize chart variables
         let profitChart = null;
